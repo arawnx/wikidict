@@ -7,14 +7,9 @@ use std::sync::{mpsc, Arc, Mutex};
 
 fn main() {
     let mut num = 0;
-    let mut use_frequency = true;
     for argument in env::args() {
         if argument.parse::<i32>().is_ok() {
             num = argument.parse::<i32>().unwrap();
-        }
-
-        if argument == "-a" { // Output as array without frequency if -a is applied
-            use_frequency = false;
         }
     }
 
@@ -28,9 +23,11 @@ fn main() {
         let handle = thread::spawn(move || {
             let wiki = wiki.lock().unwrap();
             let titles = wiki.random_count(255).unwrap();
-            let page = wiki.page_from_title(title);
-            let summary = page.get_summary().unwrap();
-            t.send(summary).unwrap();
+            for title in titles {
+                let page = wiki.page_from_title(title);
+                let summary = page.get_summary().unwrap();
+                t.send(summary).unwrap();
+            }
         });
 
         handles.push(handle);
@@ -40,7 +37,35 @@ fn main() {
         handle.join().unwrap();
     }
 
+    let mut summaries = Vec::new();
     for rec in r.try_iter() {
-        println!("{}", rec);
+        summaries.push(rec.to_string());
     }
+
+    let summaries = summaries.join(" ");
+    let words: Vec<String> = summaries.split_ascii_whitespace().map(|w| w.to_owned()).collect();
+    let words: Vec<String> = words.into_iter().filter(|w| {
+        let mut res = true;
+        for c in w.chars() {
+            if !c.is_ascii_alphabetic() {
+                res = false;
+            }
+        }
+        return res;
+    }).collect();
+    let mut words: Vec<String> = words.into_iter().map(|w| w.to_lowercase()).collect();
+    words.sort();
+    words.dedup();
+    words.sort_by(|a, b| {
+        return a.len().partial_cmp(&b.len()).unwrap();
+    });
+
+    print!("[");
+    let mut out = String::new();
+    for w in words {
+        out = format!("{}\"{}\",", out, w);
+    }
+    out.pop();
+    print!("{}", out);
+    print!("]");
 }
