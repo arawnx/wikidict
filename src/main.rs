@@ -5,9 +5,14 @@ use std::collections::HashMap;
 
 fn main() {
     let mut num = 0;
+    let mut use_frequency = true;
     for argument in env::args() {
         if argument.parse::<i32>().is_ok() {
             num = argument.parse::<i32>().unwrap();
+        }
+
+        if argument == "-a" { // Output as array without frequency if -a is applied
+            use_frequency = false;
         }
     }
 
@@ -37,7 +42,7 @@ fn main() {
             }
 
             let words: Vec<String> = contents.split_ascii_whitespace().map(|w| w.to_owned()).collect();
-            let words: Vec<String> = words.into_iter().filter(|w| w.chars().all(char::is_alphanumeric)).collect();
+            let words: Vec<String> = words.into_iter().filter(|w| w.chars().all(char::is_alphabetic)).collect();
             let words: Vec<String> = words.into_iter().map(|w| w.to_lowercase()).collect();
 
             for word in &words {
@@ -50,5 +55,13 @@ fn main() {
         }
     }
 
-    println!("{:?}", dictionary);
+    if use_frequency {
+        println!("{:?}", dictionary);
+    } else {
+        println!("{{[");
+        for key in dictionary.keys() {
+            println!("{:?},", key);
+        }
+        println!("]}}");
+    }
 }
