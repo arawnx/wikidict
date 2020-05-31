@@ -18,96 +18,29 @@ fn main() {
         }
     }
 
+    let wiki = Arc::new(Mutex::new(wikipedia::Wikipedia::<wikipedia::http::default::Client>::default()));
+    let (t, r) = mpsc::channel();
 
-    let wiki = wikipedia::Wikipedia::<wikipedia::http::default::Client>::default();
-<<<<<<< HEAD
-    let mut titles = Vec::new();
-    for _ in 0..num {
-        titles.push(wiki.random().unwrap().unwrap());
-    }
-    let mut pages = Vec::new();
-    for title in titles {
-        pages.push(wiki.page_from_title(title));
-    }
-    let mut sums = Vec::new();
-    for page in pages {
-        sums.push(page.get_summary().unwrap());
-    }
-=======
-    for _ in 0..num {
-        let mut titles = Vec::new();
-        match wiki.random_count(1) {
-            Result::Err(msg) => {
-                eprintln!("{}", msg);
-            },
-            Ok(x) =>  {
-                titles = x;
-            }
-        }
->>>>>>> 39e7ad6813f224c6a085b04116bb198e029f1482
-
-    let wordsum = Arc::new(Mutex::new(Vec::new()));
-
-<<<<<<< HEAD
     let mut handles = Vec::new();
-    for sum in sums {
-        let local = Arc::clone(&wordsum);
+    for _ in 0..num {
+        let wiki = Arc::clone(&wiki);
+        let t = mpsc::Sender::clone(&t);
         let handle = thread::spawn(move || {
-            let words: Vec<String> = sum.split_ascii_whitespace().map(|w| w.to_owned()).collect();
-            let words: Vec<String> = words.into_iter().filter(|w| w.chars().all(char::is_alphabetic)).collect();
-            let mut words: Vec<String> = words.into_iter().map(|w| w.to_lowercase()).collect();
-            local.lock().unwrap().append(&mut words);
+            let wiki = wiki.lock().unwrap();
+            let title = wiki.random().unwrap().unwrap();
+            let page = wiki.page_from_title(title);
+            let summary = page.get_summary().unwrap();
+            t.send(summary).unwrap();
         });
-=======
-            let words: Vec<String> = contents.split_ascii_whitespace().map(|w| w.to_owned()).collect();
-            let words: Vec<String> = words.into_iter().filter(|w| {
-                for c in w.chars() {
-                    if !c.is_ascii_alphabetic() {
-                        return false;
-                    }
-                }
-
-                return true;
-            }).collect();
-            let words: Vec<String> = words.into_iter().map(|w| w.to_lowercase()).collect();
->>>>>>> 39e7ad6813f224c6a085b04116bb198e029f1482
 
         handles.push(handle);
-
-        /*for word in &words {
-            if dictionary.contains_key(word) {
-                *dictionary.get_mut(word).unwrap() += 1;
-            } else {
-                dictionary.insert(word.to_owned(), 1);
-            }
-        }*/
     }
 
     for handle in handles {
         handle.join().unwrap();
     }
 
-    println!("{:?}", *wordsum.lock().unwrap());
-
-    /*
-    if use_frequency {
-        print!("{{");
-        let mut conts = String::new();
-        for (k, v) in dictionary {
-            conts = format!("{}\n\"{}\": {},", conts, k, v);
-        }
-        conts.pop();
-        print!("{}", conts);
-        print!("\n}}");
-    } else {
-        print!("[");
-        let mut conts = String::new();
-        for key in dictionary.keys() {
-            conts = format!("{}\n\"{}\",", conts, key);
-        }
-        conts.pop();
-        print!("{}", conts);
-        print!("\n]");
+    for rec in r.try_iter() {
+        println!("{}", rec);
     }
-    */
 }
