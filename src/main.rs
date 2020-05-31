@@ -44,7 +44,7 @@ fn main() {
             let words: Vec<String> = contents.split_ascii_whitespace().map(|w| w.to_owned()).collect();
             let words: Vec<String> = words.into_iter().filter(|w| {
                 for c in w.chars() {
-                    if !c.is_ascii_alphanumeric() {
+                    if !c.is_ascii_alphabetic() {
                         return false;
                     }
                 }
