@@ -27,7 +27,7 @@ fn main() {
         let t = mpsc::Sender::clone(&t);
         let handle = thread::spawn(move || {
             let wiki = wiki.lock().unwrap();
-            let title = wiki.random().unwrap().unwrap();
+            let titles = wiki.random_count(255).unwrap();
             let page = wiki.page_from_title(title);
             let summary = page.get_summary().unwrap();
             t.send(summary).unwrap();
