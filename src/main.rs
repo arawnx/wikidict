@@ -20,6 +20,7 @@ fn main() {
 
 
     let wiki = wikipedia::Wikipedia::<wikipedia::http::default::Client>::default();
+<<<<<<< HEAD
     let mut titles = Vec::new();
     for _ in 0..num {
         titles.push(wiki.random().unwrap().unwrap());
@@ -32,9 +33,22 @@ fn main() {
     for page in pages {
         sums.push(page.get_summary().unwrap());
     }
+=======
+    for _ in 0..num {
+        let mut titles = Vec::new();
+        match wiki.random_count(1) {
+            Result::Err(msg) => {
+                eprintln!("{}", msg);
+            },
+            Ok(x) =>  {
+                titles = x;
+            }
+        }
+>>>>>>> 39e7ad6813f224c6a085b04116bb198e029f1482
 
     let wordsum = Arc::new(Mutex::new(Vec::new()));
 
+<<<<<<< HEAD
     let mut handles = Vec::new();
     for sum in sums {
         let local = Arc::clone(&wordsum);
@@ -44,6 +58,19 @@ fn main() {
             let mut words: Vec<String> = words.into_iter().map(|w| w.to_lowercase()).collect();
             local.lock().unwrap().append(&mut words);
         });
+=======
+            let words: Vec<String> = contents.split_ascii_whitespace().map(|w| w.to_owned()).collect();
+            let words: Vec<String> = words.into_iter().filter(|w| {
+                for c in w.chars() {
+                    if !c.is_ascii_alphabetic() {
+                        return false;
+                    }
+                }
+
+                return true;
+            }).collect();
+            let words: Vec<String> = words.into_iter().map(|w| w.to_lowercase()).collect();
+>>>>>>> 39e7ad6813f224c6a085b04116bb198e029f1482
 
         handles.push(handle);
 
@@ -64,13 +91,23 @@ fn main() {
 
     /*
     if use_frequency {
-        println!("{:?}", dictionary);
-    } else {
-        println!("{{[");
-        for key in dictionary.keys() {
-            println!("{:?},", key);
+        print!("{{");
+        let mut conts = String::new();
+        for (k, v) in dictionary {
+            conts = format!("{}\n\"{}\": {},", conts, k, v);
         }
-        println!("]}}");
+        conts.pop();
+        print!("{}", conts);
+        print!("\n}}");
+    } else {
+        print!("[");
+        let mut conts = String::new();
+        for key in dictionary.keys() {
+            conts = format!("{}\n\"{}\",", conts, key);
+        }
+        conts.pop();
+        print!("{}", conts);
+        print!("\n]");
     }
     */
 }
