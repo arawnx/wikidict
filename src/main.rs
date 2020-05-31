@@ -14,7 +14,7 @@ fn main() {
     let mut dictionary: HashMap<String, i32> = HashMap::new();
 
     let wiki = wikipedia::Wikipedia::<wikipedia::http::default::Client>::default();
-    for i in 0..num {
+    for _ in 0..num {
         let mut titles = Vec::new();
         match wiki.random_count(255) {
             Result::Err(msg) => {
@@ -47,8 +47,8 @@ fn main() {
                     dictionary.insert(word.to_owned(), 1);
                 }
             }
-        } 
-    }    
+        }
+    }
 
     println!("{:?}", dictionary);
 }
